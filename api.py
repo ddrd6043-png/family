@@ -29,7 +29,7 @@ def generate_session_id() -> str:
 
 def generate_key_material(session_id: str) -> str:
     inner_hash = get_md5_hex(SECRET_SEED)
-    combined_string = inner_hash + session_id  # Cleaned up unused var
+    combined_string = inner_hash + session_id
     return get_md5_hex(combined_string)
 
 def derive_aes_key(key_material: str) -> bytes:
@@ -83,10 +83,15 @@ def fetch():
         response = requests.post(API_URL, headers=headers, json=payload, timeout=15)
 
         # ---------------------------
-        # ✅ Add Footer to Response
+        # ✅ Add Scheme & Footer at End (Nicely Ordered)
         # ---------------------------
-        data = response.json()
-        data["footer"] = "API Powered by @Tg_legend99"
+        original_data = response.json()
+        footer_info = {
+            "schemeId": "PHH",
+            "schemeName": "PHH",
+            "footer": "API Powered by @Tg_legend99"
+        }
+        data = {**original_data, **footer_info}  # Unpack original + add at end
 
         return jsonify(data)
 
