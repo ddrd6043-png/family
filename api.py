@@ -5,20 +5,21 @@ from datetime import datetime
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
 import base64
+import os  # For env vars
 
-# --- Configuration ---
-SECRET_SEED = "APIMPDS$9712Q"
-IV_STR = "AP4123IMPDS@12768F"
-API_URL = 'http://impds.nic.in/impdsmobileapi/api/getrationcard'
-TOKEN = "91f01a0a96c526d28e4d0c1189e80459"
-USER_AGENT = 'Dalvik/2.1.0 (Linux; U; Android 14; 22101320I Build/UKQ1.240624.001)'
+# --- Configuration (Use env vars for security in production) ---
+SECRET_SEED = os.getenv("SECRET_SEED", "APIMPDS$9712Q")
+IV_STR = os.getenv("IV_STR", "AP4123IMPDS@12768F")
+API_URL = os.getenv("API_URL", 'http://impds.nic.in/impdsmobileapi/api/getrationcard')
+TOKEN = os.getenv("TOKEN", "91f01a0a96c526d28e4d0c1189e80459")
+USER_AGENT = os.getenv("USER_AGENT", 'Dalvik/2.1.0 (Linux; U; Android 14; 22101320I Build/UKQ1.240624.001)')
 
 # ✅ API Access Key
-ACCESS_KEY = "496"
+ACCESS_KEY = os.getenv("ACCESS_KEY", "496")
 
 app = Flask(__name__)
 
-# --- Utility Functions --- (same as before)
+# --- Utility Functions ---
 def get_md5_hex(input_string: str) -> str:
     return hashlib.md5(input_string.encode('iso-8859-1')).hexdigest()
 
@@ -82,32 +83,24 @@ def fetch():
         response = requests.post(API_URL, headers=headers, json=payload, timeout=15)
 
         # ---------------------------
-        # ✅ Add Scheme & Footer at End
+        # ✅ Add Scheme & Footer at End (Nicely Ordered)
         # ---------------------------
         original_data = response.json()
         footer_info = {
             "schemeId": "PHH",
             "schemeName": "PHH",
-            "footer": "API Powered by @Tg_legend99"  # Ya hack: "zzz_footer" for sorted view
+            "footer": "API Powered by @Tg_legend99"
         }
         data = {**original_data, **footer_info}
-
-        # Optional: Wrap to force structure (footer naturally last, even if sorted)
-        # wrapped_data = {
-        #     "rationCard": original_data,
-        #     "schemeId": "PHH",
-        #     "schemeName": "PHH",
-        #     "footer": "API Powered by @Tg_legend99"
-        # }
-        # return jsonify(wrapped_data)
 
         return jsonify(data)
 
     except requests.exceptions.RequestException as e:
         return jsonify({"error": f"Network error: {str(e)}"}), 500
     except Exception as e:
+        # For Vercel logs
+        print(f"Unexpected error: {str(e)}")
         return jsonify({"error": f"Unexpected error: {str(e)}"}), 500
 
-# --- Run Server ---
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+# No app.run() for Vercel serverless – gunicorn handles it
+# For local testing: if __name__ == '__main__': app.run(debug=True)
