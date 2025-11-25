@@ -1,3 +1,4 @@
+
 from flask import Flask, request, jsonify
 import requests
 import hashlib
@@ -28,7 +29,7 @@ def generate_session_id() -> str:
 
 def generate_key_material(session_id: str) -> str:
     inner_hash = get_md5_hex(SECRET_SEED)
-    combined_string = inner_hash + session_id
+    combined_string = inner_string = inner_hash + session_id
     return get_md5_hex(combined_string)
 
 def derive_aes_key(key_material: str) -> bytes:
@@ -81,7 +82,13 @@ def fetch():
 
         response = requests.post(API_URL, headers=headers, json=payload, timeout=15)
 
-        return jsonify(response.json())
+        # ---------------------------
+        # ✅ Add Footer to Response
+        # ---------------------------
+        data = response.json()
+        data["footer"] = "API Powered by @Tg_legend99"
+
+        return jsonify(data)
 
     except requests.exceptions.RequestException as e:
         return jsonify({"error": f"Network error: {str(e)}"}), 500
