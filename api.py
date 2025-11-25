@@ -1,4 +1,3 @@
-
 from flask import Flask, request, jsonify
 import requests
 import hashlib
@@ -19,7 +18,7 @@ ACCESS_KEY = "496"
 
 app = Flask(__name__)
 
-# --- Utility Functions ---
+# --- Utility Functions --- (same as before)
 def get_md5_hex(input_string: str) -> str:
     return hashlib.md5(input_string.encode('iso-8859-1')).hexdigest()
 
@@ -83,15 +82,24 @@ def fetch():
         response = requests.post(API_URL, headers=headers, json=payload, timeout=15)
 
         # ---------------------------
-        # ✅ Add Scheme & Footer at End (Nicely Ordered)
+        # ✅ Add Scheme & Footer at End
         # ---------------------------
         original_data = response.json()
         footer_info = {
             "schemeId": "PHH",
             "schemeName": "PHH",
-            "footer": "API Powered by @Tg_legend99"
+            "footer": "API Powered by @Tg_legend99"  # Ya hack: "zzz_footer" for sorted view
         }
-        data = {**original_data, **footer_info}  # Unpack original + add at end
+        data = {**original_data, **footer_info}
+
+        # Optional: Wrap to force structure (footer naturally last, even if sorted)
+        # wrapped_data = {
+        #     "rationCard": original_data,
+        #     "schemeId": "PHH",
+        #     "schemeName": "PHH",
+        #     "footer": "API Powered by @Tg_legend99"
+        # }
+        # return jsonify(wrapped_data)
 
         return jsonify(data)
 
@@ -102,4 +110,4 @@ def fetch():
 
 # --- Run Server ---
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000 ,
